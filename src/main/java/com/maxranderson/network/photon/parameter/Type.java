@@ -26,7 +26,7 @@ public enum Type {
     private final int id;
     Type(int id) { this.id = id; }
 
-    static Type valueOf(int id) {
+    public static Type valueOf(int id) {
         if(id == 0) {
             return NilType;
         }

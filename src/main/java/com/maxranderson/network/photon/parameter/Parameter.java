@@ -1,15 +1,18 @@
 package com.maxranderson.network.photon.parameter;
 
+import com.maxranderson.network.photon.PhotonMessage;
+
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.IntStream;
 
 public abstract class Parameter {
 
-    static Optional<Parameter> decode(Type paramType, ByteBuffer buffer) {
+    public static Optional<Parameter> decode(Type paramType, ByteBuffer buffer) {
         switch (paramType) {
             case NilType:
                 return Optional.of(new EmptyParameter());
@@ -34,15 +37,15 @@ public abstract class Parameter {
                 short sliceLength = buffer.getShort();
                 Type sliceType = Type.valueOf(buffer.get());
                 Parameter[] sliceValue = new Parameter[sliceLength];
-                IntStream.range(0, sliceLength - 1)
+                IntStream.range(0, sliceLength)
                         .forEach(i -> sliceValue[i] = decode(sliceType, buffer).orElseThrow());
                 return Optional.of(new SeqParameter(sliceValue));
             case DictionaryType:
                 Type keyType = Type.valueOf(buffer.get());
                 Type valueType = Type.valueOf(buffer.get());
                 short dictionaryLength = buffer.getShort();
-                Map<Parameter, Parameter> dictionary = Collections.emptyMap();
-                IntStream.range(0, dictionaryLength - 1)
+                HashMap<Parameter, Parameter> dictionary = new HashMap<>();
+                IntStream.range(1, dictionaryLength + 1)
                     .forEach(i ->
                         dictionary.put(
                             decode(keyType, buffer).orElseThrow(),
@@ -58,6 +61,22 @@ public abstract class Parameter {
             default:
                 return Optional.empty();
         }
+    }
+
+    public static Map<Integer, Parameter> decode(PhotonMessage message) {
+        ByteBuffer buffer = ByteBuffer.wrap(message.getData());
+        HashMap<Integer, Parameter> parameters = new HashMap<>();
+
+        IntStream.range(1, message.getParameterCount() + 1)
+            .forEach(i -> {
+                int id = Byte.toUnsignedInt(buffer.get());
+                Type paramType = Type.valueOf(Byte.toUnsignedInt(buffer.get()));
+                decode(paramType, buffer).ifPresent(parameter -> {
+                    parameters.put(id, parameter);
+                });
+            });
+
+        return parameters;
     }
 }
 

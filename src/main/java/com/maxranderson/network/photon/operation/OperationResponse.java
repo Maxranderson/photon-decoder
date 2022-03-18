@@ -13,6 +13,7 @@ public class OperationResponse extends PhotonOperation{
     public String toString() {
         return "OperationResponse{" +
                 "request=" + request +
+                ", code=" + code +
                 ", debugString='" + debugString + '\'' +
                 '}';
     }

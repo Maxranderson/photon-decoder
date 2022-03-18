@@ -6,6 +6,8 @@ import com.maxranderson.network.photon.operation.EventData;
 import com.maxranderson.network.photon.operation.OperationRequest;
 import com.maxranderson.network.photon.operation.OperationResponse;
 import com.maxranderson.network.photon.operation.PhotonOperation;
+import com.maxranderson.network.photon.parameter.Parameter;
+import com.maxranderson.network.photon.parameter.Type;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -33,7 +35,7 @@ public class PhotonMessage {
                 '}';
     }
 
-    static PhotonMessage decode(ENetCommand command) {
+    public static PhotonMessage decode(ENetCommand command) {
         if(command.getProtocol() != ENetProtocol.SendReliableType) {
             throw new IllegalArgumentException("Command can't be converted");
         }
@@ -51,8 +53,9 @@ public class PhotonMessage {
             case 3:
             case 7:
                 OperationRequest request = new OperationRequest(Byte.toUnsignedInt(buffer.get()));
-                int code = Byte.toUnsignedInt(buffer.get());
-                String debug = "";
+                int code = Short.toUnsignedInt(buffer.getShort());
+                Type paramType = Type.valueOf(Byte.toUnsignedInt(buffer.get()));
+                String debug = Parameter.decode(paramType, buffer).map(Object::toString).orElse("");
                 operation = new OperationResponse(code, request, debug);
                 break;
             case 4:
@@ -65,5 +68,13 @@ public class PhotonMessage {
         byte[] data = new byte[buffer.remaining()];
         buffer.get(data);
         return new PhotonMessage(signature, operation, parameterCount, data);
+    }
+
+    public short getParameterCount() {
+        return parameterCount;
+    }
+
+    public byte[] getData() {
+        return data;
     }
 }

@@ -64,7 +64,7 @@ public class ENetPacket {
         return new ENetPacket(header, payload);
     }
 
-    ENetPacket decodeCommands() {
+    public ENetPacket decodeCommands() {
         ByteBuffer buffer = ByteBuffer.wrap(payload);
 
         this.commands = IntStream.range(0, this.header.commandCount)
@@ -90,7 +90,7 @@ public class ENetPacket {
         return this;
     }
 
-    List<ENetCommand> getCommands() {
+    public List<ENetCommand> getCommands() {
         if(this.commands != null) {
             return Arrays.asList(this.commands);
         }

@@ -78,7 +78,7 @@ public class PhotonOperationDecoder {
         return new PhotonMessageFragment(sequenceNumber, fragmentCount, fragmentNumber, totalLength,fragmentOffset, data);
     }
 
-    Optional<PhotonMessage> decode(ENetCommand command) {
+    public Optional<PhotonMessage> decode(ENetCommand command) {
         switch (command.getProtocol()) {
             case SendReliableType:
                 return Optional.of(PhotonMessage.decode(command));
